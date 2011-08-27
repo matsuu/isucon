@@ -20,9 +20,10 @@ sub load_config {
 
 sub dbh {
     my $self = shift;
+    return $self->{_dbh} if $self->{_dbh};
     my $config = $self->load_config;
     my $host = $config->{servers}->{database}->[0] || '127.0.0.1';
-    DBI->connect_cached('dbi:mysql:isucon;host='.$host,'isuconapp','isunageruna',{
+    $self->{_dbh} = DBI->connect_cached('dbi:mysql:isucon;host='.$host,'isuconapp','isunageruna',{
         RaiseError => 1,
         PrintError => 0,
         ShowErrorStatement => 1,
@@ -76,25 +77,17 @@ post '/post' => sub {
 post '/comment/:articleid' => sub {
     my ( $self, $c )  = @_;
 
-    eval {
-      my $sth = $self->dbh->prepare('INSERT INTO comment SET article = ?, name =?, body = ?');
-      my $article_sth = $self->dbh->prepare('UPDATE article SET commented_at = CURRENT_TIMESTAMP WHERE id = ?');
+    my $sth = $self->dbh->prepare('INSERT INTO comment SET article = ?, name =?, body = ?');
+    my $article_sth = $self->dbh->prepare('UPDATE article SET commented_at = CURRENT_TIMESTAMP WHERE id = ?');
 
-      $self->dbh->begin_work;
-      $sth->execute(
-          $c->args->{articleid},
-          $c->req->param('name'), 
-          $c->req->param('body')
-      );
-      $article_sth->execute(
-          $c->args->{articleid}
-      );
-
-      $self->dbh->commit;
-    };
-    if($@) {
-      eval { $self->dbh->rollback; };
-    }
+    $sth->execute(
+        $c->args->{articleid},
+        $c->req->param('name'), 
+        $c->req->param('body')
+    );
+    $article_sth->execute(
+        $c->args->{articleid}
+    );
 
     $c->redirect($c->req->uri_for('/article/'.$c->args->{articleid}));
 };

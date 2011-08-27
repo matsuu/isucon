@@ -2,7 +2,7 @@ package Isucon;
 
 use strict;
 use warnings;
-use utf8;
+#use utf8;
 use Kossy;
 use DBI;
 use JSON;
@@ -28,6 +28,7 @@ sub dbh {
         PrintError => 0,
         ShowErrorStatement => 1,
         AutoInactiveDestroy => 1,
+        mysql_sql_prepare => 1,
         mysql_enable_utf8 => 1
     });
 }

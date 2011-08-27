@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS isucon.article (
   id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(128) NOT NULL,
   body  VARCHAR(4096) NOT NULL,
+  commented_at DATETIME NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -25,3 +26,5 @@ CREATE TABLE IF NOT EXISTS isucon.comment (
   # INDEX (created_at DESC, article)
   INDEX (article, created_at DESC)
 ) ENGINE=InnoDB;
+
+UPDATE article SET commented_at = (SELECT MAX(created_at) FROM comment WHERE article.id = comment.article);
